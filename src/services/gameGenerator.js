@@ -111,16 +111,22 @@ Generate the complete prototype now.`
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch);
           // Ensure the parsed object is valid and has required keys
+          const code = parsed.gameCode || parsed.prototypeCode;
           if (
             typeof parsed === 'object' &&
             !Array.isArray(parsed) &&
-            parsed.gameName &&
-            (parsed.gameCode || parsed.prototypeCode)
+            typeof parsed.gameName === 'string' && parsed.gameName.trim().length > 0 &&
+            typeof code === 'string' && code.trim().length > 0
           ) {
             gameData = parsed;
+            // Normalize gameCode field
+            if (!parsed.gameCode && parsed.prototypeCode) {
+              gameData.gameCode = parsed.prototypeCode;
+              delete gameData.prototypeCode;
+            }
             console.log('Successfully parsed prototype data:', gameData.gameName);
           } else {
-            fallbackReason = 'Parsed JSON is not a valid prototype object (missing gameName or gameCode/prototypeCode).';
+            fallbackReason = 'Parsed JSON is not a valid prototype object (missing or empty gameName or gameCode).';
             throw new Error(fallbackReason);
           }
         } else {
@@ -132,7 +138,7 @@ Generate the complete prototype now.`
         console.error('Failed to parse AI response:', parseError);
         console.log('Raw AI response:', content);
         console.warn('Fallback reason:', fallbackReason || parseError.message);
-        gameData = Generation.createIntelligentFallback(prompt);
+        gameData = Generation.createIntelligentFallback(prompt, content);
         gameData.fallbackReason = fallbackReason || parseError.message;
       }
 
@@ -140,6 +146,13 @@ Generate the complete prototype now.`
       gameData.gameCode = Generation.validateAndEnhanceGameCode(gameData.gameCode, gameData, prompt);
       // Ensure all required fields exist
       gameData = Generation.validateGameData(gameData, prompt);
+      // If validation failed, use fallback
+      if (!gameData || typeof gameData !== 'object') {
+        usedFallback = true;
+        fallbackReason = 'Prototype validation failed or returned invalid object.';
+        gameData = Generation.createIntelligentFallback(prompt, content);
+        gameData.fallbackReason = fallbackReason;
+      }
       // Add fallback flag and reason for UI feedback
       gameData.usedFallback = usedFallback;
       if (usedFallback) gameData.fallbackReason = fallbackReason;
@@ -147,7 +160,7 @@ Generate the complete prototype now.`
       return gameData;
     } catch (error) {
       console.error('Prototype generation failed:', error);
-      return Generation.createIntelligentFallback(prompt);
+      return Generation.createIntelligentFallback(prompt, '');
     }
   }
 }

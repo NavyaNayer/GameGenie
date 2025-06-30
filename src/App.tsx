@@ -57,8 +57,13 @@ function App() {
         originalPrompt: prompt
       });
 
-      setSuccess(`🎮 ${gameData.gameName} generated successfully! Your ${gameData.genre.toLowerCase()} game is ready to play.`);
-      toast.success(`Generated ${gameData.gameName}!`);
+      if (gameData.usedFallback) {
+        setSuccess(`⚠️ Generated with fallback: ${gameData.fallbackReason || 'AI output could not be parsed. Showing best effort.'}`);
+        toast(`Generated with fallback: ${gameData.fallbackReason || 'AI output could not be parsed.'}`, { icon: '⚠️' });
+      } else {
+        setSuccess(`🎮 ${gameData.gameName} generated successfully! Your ${gameData.genre?.toLowerCase() || ''} game is ready to play.`);
+        toast.success(`Generated ${gameData.gameName}!`);
+      }
     } catch (err) {
       console.error('Game generation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate game. Please try again.';

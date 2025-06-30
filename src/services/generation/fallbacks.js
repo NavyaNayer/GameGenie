@@ -67,3 +67,27 @@ export function getGameTypeImagePrompts(gameType, theme) {
 export function getGameTypeSoundPrompts(gameType) {
   // ...existing code...
 }
+
+// Minimal fallback for GameGenerator if AI output cannot be parsed
+export function createIntelligentFallback(prompt, rawContent = '') {
+  return {
+    gameName: 'Untitled Prototype',
+    description: 'AI output could not be parsed. This is a minimal fallback. See below for raw Llama output.',
+    genre: 'Unknown',
+    theme: 'Unknown',
+    difficulty: 'medium',
+    rules: '',
+    mechanics: [],
+    gameCode: '',
+    characters: [],
+    items: [],
+    levels: [],
+    controls: {},
+    imagePrompts: [],
+    soundPrompts: [],
+    cssStyles: '',
+    usedFallback: true,
+    fallbackReason: 'AI output could not be parsed. See below for raw output.',
+    rawLlamaOutput: rawContent
+  };
+}

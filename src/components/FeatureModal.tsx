@@ -73,9 +73,10 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
       height: 30,
       type: input as any || 'dungeon',
       difficulty: 0.5,
-      theme: gameData.theme || 'fantasy'
+      theme: gameData.theme || 'fantasy',
+      prompt: input || ''
     };
-    const level = ProceduralGenerator.generateLevel(params);
+    const level = await ProceduralGenerator.generateLevelWithPrompt(params);
     setResult({ type: 'level', content: level });
     toast.success('Level generated successfully!');
   };
