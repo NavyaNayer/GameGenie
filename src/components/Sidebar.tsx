@@ -14,7 +14,8 @@ import {
   Sparkles,
   Image,
   Music,
-  Volume2
+  Volume2,
+  X
 } from 'lucide-react';
 import { FeatureModal } from './FeatureModal';
 import { AssetGenerator } from './AssetGenerator';
@@ -31,6 +32,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
   const [showAssetGenerator, setShowAssetGenerator] = useState(false);
+  type AssetType = 'images' | 'sounds' | 'music';
+  const [myAssets, setMyAssets] = useState<{ images: string[]; sounds: string[]; music: string[] }>({
+    images: [],
+    sounds: [],
+    music: []
+  });
+  const [showMyAssets, setShowMyAssets] = useState(false);
   const [apiStatus, setApiStatus] = useState({
     huggingFace: false,
     replicate: false,
@@ -157,6 +165,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
     return isReady ? 'text-green-600' : 'text-orange-600';
   };
 
+  const handleSaveAsset = (asset: { type: AssetType; url: string; index: number }) => {
+    setMyAssets(prev => {
+      if (prev[asset.type].includes(asset.url)) {
+        return prev; // Prevent duplicates
+      }
+      return {
+        ...prev,
+        [asset.type]: [...prev[asset.type], asset.url]
+      };
+    });
+  };
+
   // Main screen feature rendering
   let mainFeatureScreen = null;
   if (activeFeature) {
@@ -176,6 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
         gameData={gameData || { gameName: 'New Game', genre: 'Adventure', theme: 'Fantasy' }}
         onClose={() => setShowAssetGenerator(false)}
         onAssetsUpdate={setAssets}
+        onSaveAsset={handleSaveAsset}
       />
     );
   }
@@ -229,6 +250,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
                   >
                     <Music className="text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
                     <div className="text-xs text-green-700 font-medium">Music</div>
+                  </button>
+                  <button
+                    onClick={() => setShowMyAssets(true)}
+                    className="p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors group"
+                  >
+                    <Download className="text-yellow-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
+                    <div className="text-xs text-yellow-700 font-medium">My Assets</div>
                   </button>
                 </div>
               </div>
@@ -333,6 +361,58 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
       {/* Modals */}
       {/* Render main feature screen instead of modal */}
       {mainFeatureScreen}
+
+      {/* My Assets Modal/Tab */}
+      {showMyAssets && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto p-6 relative">
+            <button
+              onClick={() => setShowMyAssets(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+              <Download className="text-yellow-600" size={24} /> My Assets
+            </h2>
+            {(['images', 'sounds', 'music'] as AssetType[]).map(type => (
+              <div key={type} className="mb-8">
+                <h3 className="text-lg font-semibold mb-3 capitalize">{type}</h3>
+                {myAssets[type].length === 0 ? (
+                  <div className="text-gray-400 text-sm mb-4">No saved {type} yet.</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {myAssets[type].map((url: string, idx: number) => (
+                      <div key={idx} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center">
+                        {type === 'images' ? (
+                          <img src={url} alt={`Saved ${type} ${idx + 1}`} className="w-full h-40 object-cover mb-2" />
+                        ) : (
+                          <audio controls src={url} className="w-full mb-2" />
+                        )}
+                        <span className="text-xs text-gray-700">{type.slice(0, -1)} {idx + 1}</span>
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `my-asset-${type}-${idx + 1}.${type === 'images' ? 'png' : 'wav'}`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="mt-2 flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <Download size={14} />
+                          Download
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 };

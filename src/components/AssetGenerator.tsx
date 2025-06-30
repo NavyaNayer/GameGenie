@@ -7,9 +7,10 @@ interface AssetGeneratorProps {
   gameData: any;
   onClose: () => void;
   onAssetsUpdate?: (assets: { images: string[]; sounds: string[]; music: string[] }) => void;
+  onSaveAsset?: (asset: { type: string; url: string; index: number }) => void;
 }
 
-export const AssetGenerator: React.FC<AssetGeneratorProps> = ({ gameData, onClose, onAssetsUpdate }) => {
+export const AssetGenerator: React.FC<AssetGeneratorProps> = ({ gameData, onClose, onAssetsUpdate, onSaveAsset }) => {
   const [activeTab, setActiveTab] = useState<'images' | 'sounds' | 'music'>('images');
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('realistic');
@@ -264,17 +265,30 @@ export const AssetGenerator: React.FC<AssetGeneratorProps> = ({ gameData, onClos
                       )}
                       
                       <div className="p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <span className="text-sm font-medium text-gray-700">
                             {activeTab.slice(0, -1)} {index + 1}
                           </span>
-                          <button
-                            onClick={() => downloadAsset(asset, activeTab, index)}
-                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            <Download size={14} />
-                            Download
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => downloadAsset(asset, activeTab, index)}
+                              className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              <Download size={14} />
+                              Download
+                            </button>
+                            {onSaveAsset && (
+                              <button
+                                onClick={() => {
+                                  onSaveAsset({ type: activeTab as 'images' | 'sounds' | 'music', url: asset, index });
+                                  toast.success('Asset saved to My Assets!');
+                                }}
+                                className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                              >
+                                Save
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
