@@ -63,9 +63,9 @@ const features = [
 ]
 
 const sampleGames = [
-  { name: "Snake", url: "/samples/snake.html", color: "bg-emerald-500" },
   { name: "Breakout", url: "/samples/breakout.html", color: "bg-blue-500" },
-  { name: "Tic-Tac-Toe", url: "/samples/tictactoe.html", color: "bg-purple-500" },
+  { name: "Memory", url: "/samples/memory.html", color: "bg-pink-500" },
+  { name: "Racing", url: "/samples/racing.html", color: "bg-yellow-500" },
 ]
 
 const LandingPage: React.FC = () => {

@@ -1,0 +1,277 @@
+<!-- Memory Game (matching pairs) with modern Game Genie layout -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Genie Sample: Memory</title>
+  <style>
+    body { background: #f0f4ff; font-family: 'Segoe UI', sans-serif; }
+    .header-bar { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 1.25rem; box-shadow: 0 4px 32px #6366f11a; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .header-title { font-size: 1.5rem; font-weight: 600; color: #1e293b; }
+    .header-button button { background: #4f46e5; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
+    .header-button button:hover { background: #4338ca; }
+    .game-card { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 1.25rem; box-shadow: 0 4px 32px #6366f11a; overflow: hidden; }
+    .game-header { padding: 2rem 2.5rem 1.5rem 2.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: flex-start; }
+    .game-header h2 { color: #1e293b; margin-bottom: 0.25rem; }
+    .game-header p { color: #64748b; margin-bottom: 0.5rem; }
+    .game-tabs { display: flex; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+    .tab { padding: 0.75rem 2rem; cursor: pointer; border: none; background: transparent; color: #64748b; font-weight: 500; }
+    .tab.active { background: #fff; color: #2563eb; border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+    .tab-content { padding: 2rem; background: #fff; }
+    .game-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+    .game-controls { text-align: center; margin: 2rem 0 0.5rem 0; }
+    .memory-board { display: grid; grid-template-columns: repeat(6, 60px); grid-gap: 16px; justify-content: center; margin: 0 auto; }
+    .memory-card { width: 60px; height: 80px; background: #e0e7ff; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #6366f1; cursor: pointer; box-shadow: 0 2px 8px #6366f11a; position: relative; transition: background 0.2s, color 0.2s; user-select: none; }
+    .memory-card.flipped, .memory-card.matched { background: #fff; color: #4f46e5; cursor: default; }
+    .memory-card.matched { background: #dcfce7; color: #16a34a; }
+    .memory-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; align-items: center; justify-content: center; pointer-events: auto; }
+    .memory-overlay.active { display: flex; }
+    .memory-overlay > div { background: #fff; padding: 2rem 3rem; border-radius: 16px; box-shadow: 0 4px 24px #6366f133; text-align: center; pointer-events: auto; }
+    .code-editor, .data-view { background: #f9fafb; border: 1px solid #e0e7ff; border-radius: 0.75rem; padding: 1rem; height: 220px; overflow-y: auto; font-family: 'Fira Mono', 'Consolas', monospace; font-size: 0.98rem; }
+    .config-view { display: flex; flex-direction: column; gap: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="header-bar" style="background: linear-gradient(90deg, #6366f1 0%, #7c3aed 100%); box-shadow: 0 2px 12px #6366f133; margin-bottom:2rem;">
+    <span class="header-title" style="color: #fff; letter-spacing: 1px;">Game Genie</span>
+    <a href="/generate" class="header-button">
+      <button style="background: #fff; color: #4f46e5; font-weight: 600;">Start Generating</button>
+    </a>
+  </div>
+  <div class="game-card">
+    <div class="game-header">
+      <div>
+        <h2 class="text-2xl font-bold">Memory</h2>
+        <p>Flip cards to find all matching pairs. Try to finish in as few moves as possible!</p>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <span style="background: #dbeafe; color: #2563eb; font-size: 0.95rem; border-radius: 999px; padding: 0.25rem 0.75rem;">Puzzle</span>
+          <span style="background: #ede9fe; color: #7c3aed; font-size: 0.95rem; border-radius: 999px; padding: 0.25rem 0.75rem;">Memory</span>
+          <span style="background: #dcfce7; color: #16a34a; font-size: 0.95rem; border-radius: 999px; padding: 0.25rem 0.75rem;">Normal</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem;">
+        <button onclick="resetGame()" style="display: flex; align-items: center; gap: 0.5rem; background: #6366f1; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer;">Reset</button>
+      </div>
+    </div>
+    <div class="game-tabs">
+      <div class="tab active" id="tab-preview">Preview</div>
+      <div class="tab" id="tab-code">Code Editor</div>
+      <div class="tab" id="tab-data">Data</div>
+      <div class="tab" id="tab-config">Config</div>
+    </div>
+    <div id="tab-preview-content" class="tab-content">
+      <div class="game-info">
+        <span id="moves" style="font-weight: 500; color: #6366f1;">Moves: 0</span>
+        <span id="matches" style="font-weight: 500; color: #16a34a;">Matches: 0</span>
+        <span id="timer" style="font-weight: 500; color: #7c3aed;">Time: 0s</span>
+      </div>
+      <div style="display: flex; justify-content: center; align-items: center; position: relative;">
+        <div id="game-area" style="position: relative;">
+          <div class="memory-board" id="memory-board"></div>
+          <div class="memory-overlay" id="memory-overlay">
+            <div>
+              <h2 style="color:#e11d48;font-size:2rem;margin-bottom:1rem;">Game Over</h2>
+              <div id="final-stats" style="margin-bottom:1rem;"></div>
+              <button onclick="playAgain()" style="background:#4f46e5;color:#fff;padding:0.75rem 2rem;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer;">Play Again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <button onclick="startGame()" id="btn-start" style="background: #4f46e5; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 2rem; font-size: 1rem; margin-right: 1rem; cursor: pointer;">Start Game</button>
+        <button onclick="resetGame()" id="btn-reset" style="background: #64748b; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 2rem; font-size: 1rem; cursor: pointer;">Reset</button>
+      </div>
+      <div style="text-align: center; color: #6366f1; margin-top: 0.5rem;">Click two cards to find a match!</div>
+    </div>
+    <div id="tab-code-content" class="tab-content" style="display:none;">
+      <div class="code-editor" id="code-editor" contenteditable="true"></div>
+      <button onclick="applyCodeEdit()" style="margin-top:1rem;background:#4f46e5;color:#fff;padding:0.75rem 2rem;border:none;border-radius:0.5rem;font-size:1rem;cursor:pointer;">Apply Code</button>
+    </div>
+    <div id="tab-data-content" class="tab-content" style="display:none;">
+      <div class="data-view" id="data-view"></div>
+    </div>
+    <div id="tab-config-content" class="tab-content" style="display:none;">
+      <div class="config-view">
+        <label style="display: flex; justify-content: space-between; align-items: center; font-weight: 500;">Pairs:
+          <input type="number" id="config-pairs" min="4" max="18" value="9" style="margin-left: 1rem; padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; width: 80px;" />
+        </label>
+        <button onclick="applyConfig()" style="margin-top:1rem;background:#4f46e5;color:#fff;padding:0.75rem 2rem;border:none;border-radius:0.5rem;font-size:1rem;cursor:pointer;align-self:flex-start;">Apply Config</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // --- Tab logic ---
+    const tabs = ['preview', 'code', 'data', 'config'];
+    tabs.forEach(tab => {
+      document.getElementById('tab-' + tab).onclick = () => {
+        tabs.forEach(t => {
+          document.getElementById('tab-' + t).classList.remove('active');
+          document.getElementById('tab-' + t + '-content').style.display = 'none';
+        });
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('tab-' + tab + '-content').style.display = '';
+      };
+    });
+    // --- Game logic ---
+    let gameState = {
+      moves: 0,
+      matches: 0,
+      pairs: 9,
+      timer: 0,
+      running: false,
+      gameOver: false,
+      timerInterval: null,
+      board: [],
+      flipped: [],
+      matched: [],
+      lock: false
+    };
+    const emojiList = ['🍎','🍌','🍇','🍉','🍓','🍒','🍑','🍍','🥝','🥑','🍋','🍊','🍐','🍈','🍏','🥥','🥕','🍅'];
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    function setupBoard() {
+      const pairs = gameState.pairs;
+      let cards = shuffle([...emojiList].slice(0, pairs).concat([...emojiList].slice(0, pairs)));
+      gameState.board = cards;
+      gameState.flipped = [];
+      gameState.matched = [];
+      gameState.moves = 0;
+      gameState.matches = 0;
+      gameState.timer = 0;
+      gameState.lock = false;
+      updateStats();
+      renderBoard();
+    }
+    function renderBoard() {
+      const board = document.getElementById('memory-board');
+      board.innerHTML = '';
+      gameState.board.forEach((emoji, idx) => {
+        const card = document.createElement('div');
+        card.className = 'memory-card';
+        if (gameState.flipped.includes(idx) || gameState.matched.includes(idx)) {
+          card.classList.add('flipped');
+          card.textContent = emoji;
+        } else {
+          card.textContent = '';
+        }
+        if (gameState.matched.includes(idx)) card.classList.add('matched');
+        card.onclick = () => flipCard(idx);
+        board.appendChild(card);
+      });
+    }
+    function flipCard(idx) {
+      if (gameState.lock || gameState.flipped.includes(idx) || gameState.matched.includes(idx) || !gameState.running) return;
+      gameState.flipped.push(idx);
+      renderBoard();
+      if (gameState.flipped.length === 2) {
+        gameState.lock = true;
+        gameState.moves++;
+        updateStats();
+        setTimeout(() => {
+          const [a, b] = gameState.flipped;
+          if (gameState.board[a] === gameState.board[b]) {
+            gameState.matched.push(a, b);
+            gameState.matches++;
+            if (gameState.matched.length === gameState.board.length) {
+              endGame();
+              return;
+            }
+          }
+          gameState.flipped = [];
+          gameState.lock = false;
+          renderBoard();
+          updateStats();
+        }, 800);
+      }
+    }
+    function updateStats() {
+      document.getElementById('moves').textContent = 'Moves: ' + gameState.moves;
+      document.getElementById('matches').textContent = 'Matches: ' + gameState.matches;
+      document.getElementById('timer').textContent = 'Time: ' + gameState.timer + 's';
+    }
+    function startTimer() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      gameState.timerInterval = setInterval(() => {
+        if (gameState.running) {
+          gameState.timer++;
+          updateStats();
+        }
+      }, 1000);
+    }
+    function stopTimer() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+    }
+    function startGame() {
+      gameState.running = true;
+      gameState.gameOver = false;
+      document.getElementById('memory-overlay').classList.remove('active');
+      setupBoard();
+      startTimer();
+      document.getElementById('game-area').style.pointerEvents = '';
+      document.getElementById('game-area').style.filter = '';
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-reset').disabled = false;
+    }
+    function endGame() {
+      gameState.running = false;
+      gameState.gameOver = true;
+      stopTimer();
+      document.getElementById('memory-overlay').classList.add('active');
+      document.getElementById('final-stats').innerHTML = `Moves: <b>${gameState.moves}</b><br>Time: <b>${gameState.timer}s</b>`;
+      document.getElementById('game-area').style.pointerEvents = 'none';
+      document.getElementById('game-area').style.filter = 'blur(2px) grayscale(0.5)';
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-reset').disabled = false;
+    }
+    function playAgain() {
+      document.getElementById('memory-overlay').classList.remove('active');
+      startGame();
+    }
+    function resetGame() {
+      stopTimer();
+      setupBoard();
+      gameState.running = false;
+      gameState.gameOver = false;
+      document.getElementById('memory-overlay').classList.remove('active');
+      document.getElementById('game-area').style.pointerEvents = '';
+      document.getElementById('game-area').style.filter = '';
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-reset').disabled = false;
+      updateStats();
+    }
+    // --- Code Editor logic ---
+    let gameCode = document.currentScript.textContent;
+    document.getElementById('code-editor').textContent = gameCode;
+    window.applyCodeEdit = function() {
+      // For demo: just reloads the page
+      alert('Live code editing is not enabled in this static sample.');
+    };
+    // --- Data tab logic ---
+    document.getElementById('data-view').textContent = JSON.stringify({
+      rules: 'Flip cards to find all matching pairs. Try to finish in as few moves as possible.',
+      mechanics: ['Click to flip cards', 'Find pairs', 'Track moves and time'],
+      items: emojiList.slice(0, gameState.pairs),
+      pairs: gameState.pairs
+    }, null, 2);
+    // --- Config tab logic ---
+    window.applyConfig = function() {
+      const pairs = parseInt(document.getElementById('config-pairs').value) || 9;
+      gameState.pairs = Math.max(4, Math.min(18, pairs));
+      resetGame();
+      alert('Config applied!');
+    };
+    // --- Initial game load ---
+    setupBoard();
+    updateStats();
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-reset').disabled = false;
+  </script>
+</body>
+</html>

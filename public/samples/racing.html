@@ -1,0 +1,296 @@
+<!-- Racing Game with modern Game Genie layout -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Genie Sample: Racing</title>
+  <style>
+    body { background: #f0f4ff; font-family: 'Segoe UI', sans-serif; }
+    .header-bar { max-width: 900px; margin: 0 auto; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: #fff; border-bottom: 1px solid #e5e7eb; border-top-left-radius: 1.25rem; border-top-right-radius: 1.25rem; }
+    .header-title { font-size: 1.5rem; font-weight: 600; color: #1e293b; }
+    .header-button button { background: #4f46e5; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1.5rem; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
+    .header-button button:hover { background: #4338ca; }
+    .game-card { max-width: 900px; margin: 2rem auto; background: #fff; border-radius: 1.25rem; box-shadow: 0 4px 32px #6366f11a; overflow: hidden; }
+    .game-header { padding: 2rem 2.5rem 1.5rem 2.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: flex-start; }
+    .game-header h2 { color: #1e293b; margin-bottom: 0.25rem; }
+    .game-header p { color: #64748b; margin-bottom: 0.5rem; }
+    .game-tabs { display: flex; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+    .tab { padding: 0.75rem 2rem; cursor: pointer; border: none; background: transparent; color: #64748b; font-weight: 500; }
+    .tab.active { background: #fff; color: #2563eb; border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+    .tab-content { padding: 2rem; background: #fff; }
+    .game-info { display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+    .game-controls { text-align: center; margin: 2rem 0 0.5rem 0; }
+    #game-area { width: 100%; max-width: 600px; aspect-ratio: 3/2; background: #f1f5f9; border-radius: 1rem; border: 2px solid #e0e7ff; display: flex; align-items: center; justify-content: center; position: relative; }
+    #gameCanvas { display: block; margin: 0 auto; background: #fff; border-radius: 0.75rem; }
+    .code-editor, .data-view { background: #f9fafb; border: 1px solid #e0e7ff; border-radius: 0.75rem; padding: 1rem; height: 220px; overflow-y: auto; font-family: 'Fira Mono', 'Consolas', monospace; font-size: 0.98rem; }
+    .config-view { display: flex; flex-direction: column; gap: 1rem; }
+    .racing-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; align-items: center; justify-content: center; pointer-events: auto; }
+    .racing-overlay.active { display: flex; }
+    .racing-overlay > div { background: #fff; padding: 2rem 3rem; border-radius: 16px; box-shadow: 0 4px 24px #6366f133; text-align: center; pointer-events: auto; }
+  </style>
+</head>
+<body>
+  <div class="header-bar" style="background: linear-gradient(90deg, #6366f1 0%, #7c3aed 100%); box-shadow: 0 2px 12px #6366f133;">
+    <span class="header-title" style="color: #fff; letter-spacing: 1px;">Game Genie</span>
+    <a href="/generate" class="header-button">
+      <button style="background: #fff; color: #4f46e5; font-weight: 600;">Start Generating</button>
+    </a>
+  </div>
+  <div class="game-card">
+    <div class="game-header">
+      <div>
+        <h2 class="text-2xl font-bold">Racing</h2>
+        <p>Race your car to the finish line! Avoid obstacles and beat your best time.</p>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <span style="background: #dbeafe; color: #2563eb; font-size: 0.95rem; border-radius: 999px; padding: 0.25rem 0.75rem;">Arcade</span>
+          <span style="background: #ede9fe; color: #7c3aed; font-size: 0.95rem; border-radius: 999px; padding: 0.25rem 0.75rem;">Racing</span>
+          <span style="background: #dcfce7; color: #16a34a; font-size: 0.95rem; border-radius: 999px; padding: 0.25rem 0.75rem;">Normal</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem;">
+        <button onclick="resetGame()" style="display: flex; align-items: center; gap: 0.5rem; background: #6366f1; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-size: 1rem; cursor: pointer;">Reset</button>
+      </div>
+    </div>
+    <div class="game-tabs">
+      <div class="tab active" id="tab-preview">Preview</div>
+      <div class="tab" id="tab-code">Code Editor</div>
+      <div class="tab" id="tab-data">Data</div>
+      <div class="tab" id="tab-config">Config</div>
+    </div>
+    <div id="tab-preview-content" class="tab-content">
+      <div class="game-info">
+        <span id="score" style="font-weight: 500; color: #6366f1;">Score: 0</span>
+        <span id="timer" style="font-weight: 500; color: #7c3aed;">Time: 0s</span>
+        <span id="best" style="font-weight: 500; color: #16a34a;">Best: --</span>
+      </div>
+      <div style="display: flex; justify-content: center; align-items: center; position: relative;">
+        <div id="game-area">
+          <canvas id="gameCanvas" width="480" height="320"></canvas>
+          <div class="racing-overlay" id="racing-overlay">
+            <div>
+              <h2 style="color:#e11d48;font-size:2rem;margin-bottom:1rem;">Game Over</h2>
+              <div id="final-stats" style="margin-bottom:1rem;"></div>
+              <button onclick="playAgain()" style="background:#4f46e5;color:#fff;padding:0.75rem 2rem;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer;">Play Again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <button onclick="startGame()" id="btn-start" style="background: #4f46e5; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 2rem; font-size: 1rem; margin-right: 1rem; cursor: pointer;">Start Game</button>
+        <button onclick="resetGame()" id="btn-reset" style="background: #64748b; color: #fff; border: none; border-radius: 0.5rem; padding: 0.75rem 2rem; font-size: 1rem; cursor: pointer;">Reset</button>
+      </div>
+      <div style="text-align: center; color: #6366f1; margin-top: 0.5rem;">Use left/right arrow keys to steer!</div>
+    </div>
+    <div id="tab-code-content" class="tab-content" style="display:none;">
+      <div class="code-editor" id="code-editor" contenteditable="true"></div>
+      <button onclick="applyCodeEdit()" style="margin-top:1rem;background:#4f46e5;color:#fff;padding:0.75rem 2rem;border:none;border-radius:0.5rem;font-size:1rem;cursor:pointer;">Apply Code</button>
+    </div>
+    <div id="tab-data-content" class="tab-content" style="display:none;">
+      <div class="data-view" id="data-view"></div>
+    </div>
+    <div id="tab-config-content" class="tab-content" style="display:none;">
+      <div class="config-view">
+        <label style="display: flex; justify-content: space-between; align-items: center; font-weight: 500;">Difficulty:
+          <select id="config-difficulty" style="margin-left: 1rem; padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <button onclick="applyConfig()" style="margin-top:1rem;background:#4f46e5;color:#fff;padding:0.75rem 2rem;border:none;border-radius:0.5rem;font-size:1rem;cursor:pointer;align-self:flex-start;">Apply Config</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // --- Tab logic ---
+    const tabs = ['preview', 'code', 'data', 'config'];
+    tabs.forEach(tab => {
+      document.getElementById('tab-' + tab).onclick = () => {
+        tabs.forEach(t => {
+          document.getElementById('tab-' + t).classList.remove('active');
+          document.getElementById('tab-' + t + '-content').style.display = 'none';
+        });
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('tab-' + tab + '-content').style.display = '';
+      };
+    });
+    // --- Game logic ---
+    let gameState = {
+      score: 0,
+      timer: 0,
+      best: null,
+      running: false,
+      gameOver: false,
+      timerInterval: null,
+      difficulty: 'normal',
+      speed: 3
+    };
+    let car = { x: 220, y: 260, w: 40, h: 60 };
+    let obstacles = [];
+    let leftPressed = false, rightPressed = false;
+    function resetObstacles() {
+      obstacles = [];
+      for (let i = 0; i < 3; i++) {
+        obstacles.push({ x: 80 + i*120, y: -150*i, w: 40, h: 60, speed: gameState.speed });
+      }
+    }
+    function drawGame() {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Draw road
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#a3a3a3';
+      ctx.fillRect(100,0,280,320);
+      // Lane lines
+      ctx.strokeStyle = '#fff';
+      ctx.setLineDash([20, 20]);
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(160,0); ctx.lineTo(160,320);
+      ctx.moveTo(240,0); ctx.lineTo(240,320);
+      ctx.moveTo(320,0); ctx.lineTo(320,320);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Draw car
+      ctx.fillStyle = '#4f46e5';
+      ctx.fillRect(car.x, car.y, car.w, car.h);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(car.x+8, car.y+10, 24, 20);
+      // Draw obstacles
+      ctx.fillStyle = '#ef4444';
+      obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.w, obs.h));
+    }
+    function updateGame() {
+      if (!gameState.running) return;
+      // Move car
+      if (leftPressed && car.x > 100) car.x -= 6;
+      if (rightPressed && car.x < 340) car.x += 6;
+      // Move obstacles
+      obstacles.forEach(obs => {
+        obs.y += obs.speed;
+        if (obs.y > 320) {
+          obs.y = -80;
+          obs.x = 100 + Math.floor(Math.random()*5)*40;
+          gameState.score++;
+        }
+      });
+      // Collision
+      for (let obs of obstacles) {
+        if (car.x < obs.x + obs.w && car.x + car.w > obs.x && car.y < obs.y + obs.h && car.y + car.h > obs.y) {
+          endGame();
+          return;
+        }
+      }
+      drawGame();
+      requestAnimationFrame(updateGame);
+    }
+    function updateStats() {
+      document.getElementById('score').textContent = 'Score: ' + gameState.score;
+      document.getElementById('timer').textContent = 'Time: ' + gameState.timer + 's';
+      document.getElementById('best').textContent = 'Best: ' + (gameState.best !== null ? gameState.best + 's' : '--');
+    }
+    function startTimer() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      gameState.timerInterval = setInterval(() => {
+        if (gameState.running) {
+          gameState.timer++;
+          updateStats();
+        }
+      }, 1000);
+    }
+    function stopTimer() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+    }
+    function startGame() {
+      car = { x: 220, y: 260, w: 40, h: 60 };
+      gameState.score = 0;
+      gameState.timer = 0;
+      gameState.running = true;
+      gameState.gameOver = false;
+      document.getElementById('racing-overlay').classList.remove('active');
+      resetObstacles();
+      drawGame();
+      updateStats();
+      startTimer();
+      requestAnimationFrame(updateGame);
+      document.getElementById('game-area').style.pointerEvents = '';
+      document.getElementById('game-area').style.filter = '';
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-reset').disabled = false;
+    }
+    function endGame() {
+      gameState.running = false;
+      gameState.gameOver = true;
+      stopTimer();
+      document.getElementById('racing-overlay').classList.add('active');
+      document.getElementById('final-stats').innerHTML = `Score: <b>${gameState.score}</b><br>Time: <b>${gameState.timer}s</b>`;
+      if (gameState.best === null || gameState.timer > gameState.best) gameState.best = gameState.timer;
+      updateStats();
+      document.getElementById('game-area').style.pointerEvents = 'none';
+      document.getElementById('game-area').style.filter = 'blur(2px) grayscale(0.5)';
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-reset').disabled = false;
+    }
+    function playAgain() {
+      document.getElementById('racing-overlay').classList.remove('active');
+      startGame();
+    }
+    function resetGame() {
+      stopTimer();
+      car = { x: 220, y: 260, w: 40, h: 60 };
+      gameState.score = 0;
+      gameState.timer = 0;
+      gameState.running = false;
+      gameState.gameOver = false;
+      resetObstacles();
+      drawGame();
+      updateStats();
+      document.getElementById('racing-overlay').classList.remove('active');
+      document.getElementById('game-area').style.pointerEvents = '';
+      document.getElementById('game-area').style.filter = '';
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-reset').disabled = false;
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') leftPressed = true;
+      if (e.key === 'ArrowRight') rightPressed = true;
+    });
+    document.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft') leftPressed = false;
+      if (e.key === 'ArrowRight') rightPressed = false;
+    });
+    // --- Code Editor logic ---
+    let gameCode = document.currentScript.textContent;
+    document.getElementById('code-editor').textContent = gameCode;
+    window.applyCodeEdit = function() {
+      alert('Live code editing is not enabled in this static sample.');
+    };
+    // --- Data tab logic ---
+    document.getElementById('data-view').textContent = JSON.stringify({
+      rules: 'Race your car to the finish line! Avoid obstacles and beat your best time.',
+      mechanics: ['Use arrow keys to steer', 'Avoid obstacles', 'Score increases as you pass obstacles'],
+      characters: [{ name: 'Car', type: 'player', description: 'Your vehicle.' }],
+      items: [{ name: 'Obstacle', type: 'obstacle', description: 'Avoid these!' }],
+      difficulty: gameState.difficulty
+    }, null, 2);
+    // --- Config tab logic ---
+    window.applyConfig = function() {
+      const diff = document.getElementById('config-difficulty').value;
+      gameState.difficulty = diff;
+      gameState.speed = diff === 'easy' ? 2 : diff === 'hard' ? 5 : 3;
+      resetGame();
+      alert('Config applied!');
+    };
+    // --- Initial game load ---
+    resetObstacles();
+    drawGame();
+    updateStats();
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-reset').disabled = false;
+  </script>
+</body>
+</html>
