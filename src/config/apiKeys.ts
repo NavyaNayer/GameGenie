@@ -32,7 +32,7 @@ export const API_CONFIG = {
 
   // OpenAI (Optional) - Get from https://platform.openai.com/api-keys
   OPENAI: {
-    apiKey: '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', // Replace with your OpenAI key (optional)
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY || '', // Loaded from .env for privacy
     endpoint: 'https://api.openai.com/v1'
   }
 };
