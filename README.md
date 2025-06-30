@@ -1,65 +1,27 @@
-# 🍽️ Dopamine Diner – Gamified Anti-Doomscrolling Extension
 
-*Live Demo:* [https://dopamine-diner.vercel.app](https://dopamine-diner.vercel.app)  
-*Chrome Extension ZIP:* Available in /extension-build (see steps below)  
-*Try It Now:* [Install via Chrome](https://dopamine-diner.vercel.app) (drag-and-drop instructions below)
+```
 
 ---
 
-## 📦 Download & Install the Extension (in Chrome)
+# Game Genie
 
-1. Go to [https://dopamine-diner.vercel.app](https://dopamine-diner.vercel.app)
-2. Click the *Download Extension* button (or download from /extension-build.zip).
-3. Extract the ZIP locally.
-4. Open a new tab and visit chrome://extensions/
-5. Enable *Developer Mode* (top right).
-6. Click *Load Unpacked* and select the extracted folder.
-7. You're ready! Start browsing Instagram, YouTube, etc., and let the Diner serve you mindful nudges.
+Game Genie is an AI-powered rapid game prototyping platform that lets you turn your ideas into playable games in minutes. With a modern, user-friendly interface and advanced AI integrations, Game Genie empowers creators of all skill levels to design, generate, and share games effortlessly.
 
----
+## Features
 
-## 🧠 Project Description
-
-*Dopamine Diner* is a mindful, gamified Chrome extension that interrupts doomscrolling patterns through creative puzzles, reflection prompts, breathing breaks, and a reward system based on your digital behavior.
-
-It transforms the passive act of scrolling into an interactive "digital dining" experience, where your scroll behavior becomes ingredients for a daily “dish,” and habits are gamified to create more mindful consumption.
-
----
-
-## 🧪 Intervention Logic
-
-The system monitors:
-
-- ⏳ *Time spent* on scroll-heavy sites (e.g., YouTube, Instagram).
-- 📜 *Scroll distance*
-- 🔄 *Tab switches*
-
-When thresholds are crossed (e.g., 20 min + high scroll volume), a *Burn Alert* is triggered, pausing the feed and presenting the user with:
-- A puzzle or game 🍳
-- A reflection question 💬
-- A reset button or extended mindful break 🧘
-
-Each interaction is tracked and contributes to the user’s “dish” for the day, generated using AI.
+- **AI Game Prototyping**: Instantly generate complete game prototypes from a simple text prompt. The AI creates code, assets, and configuration for you.
+- **AI Asset Generator**: Create unique images, sound effects, and music for your games using state-of-the-art AI models (OpenAI, Freesound, etc.).
+- **Procedural Content Generation**: Generate endless levels, maps, and content for your games with procedural and AI-driven algorithms.
+- **AI NPC Dialogue**: Automatically generate realistic, multi-turn conversations for your game characters, formatted in a chat-style UI.
+- **Code Assistant**: Get AI-powered code analysis and suggestions to improve your game prototypes.
+- **Analytics**: Track player behavior, session counts, and completion rates with built-in analytics tools.
+- **Accessibility Checker**: Analyze your game for accessibility issues and receive actionable suggestions for improvement.
+- **Collaboration**: Set up real-time collaboration projects and invite others to work on your game together.
+- **Export & Share**: Package and download your complete game project with a single click, ready to share or deploy.
+- **Sample Games**: Explore and play a collection of sample games for inspiration and learning.
+- **Personal Asset Library**: Save your favorite generated assets (images, sounds, music) and access them anytime in the "My Assets" section.
+- **Modern UI/UX**: Enjoy a beautiful, responsive interface with quick actions, feature modals, and a full-width landing page.
 
 ---
 
-## 📈 Impact Measurement
-
-We use the following metrics to evaluate behavioral shifts:
-
-- ⏱️ *Time before burn alert*: Is the user scrolling less before intervention?
-- 🧩 *Interaction rate*: Are users completing games or skipping them?
-- 🧠 *Reflection entries*: Are users taking time to reflect?
-- 📉 *Reduction in tab switches* or scroll length after repeated sessions
-- ✨ *AI-generated summary quality* (daily feedback loop)
-
-Data is stored temporarily in local/session storage (privacy-first), and anonymized summaries are used for insights.
-
----
-
-## 🚶 User Experience Flow
-
-```text
-[Open Social Feed] → [Scroll Detected] → [Threshold Crossed] → 
-🚨 Burn Alert Modal → 🎮 Puzzle or 🌬️ Break → ✍️ Reflection →
-🍽️ “Today’s Dish” Generated → 📊 Raw Data & AI Summary → 🎁 Daily Challenge Complete
+Made by Team Game Genie
