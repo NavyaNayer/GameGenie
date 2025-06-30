@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, Download, RotateCcw, Code, Image, Users, Gamepad2, Wand2, Music } from 'lucide-react';
 import { AssetGenerator } from './AssetGenerator';
 import { GameConfig } from './GameConfig';
+import { CodeEditor } from './CodeEditor';
+import { AICodeAssistant } from '../services/aiCodeAssistant';
 
 interface GamePreviewProps {
   gameData: any;
@@ -20,9 +22,37 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
   isRegenerating,
   onConfigChange
 }) => {
-  const [activeTab, setActiveTab] = React.useState('preview');
-  const [previewError, setPreviewError] = React.useState<string | null>(null);
-  const [showAssetGenerator, setShowAssetGenerator] = React.useState(false);
+  const [activeTab, setActiveTab] = useState('preview');
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [showAssetGenerator, setShowAssetGenerator] = useState(false);
+
+  // VS Code-like editor state
+  const [editorFile, setEditorFile] = useState(Object.keys(files)[0] || 'game.js');
+  const [editorFiles, setEditorFiles] = useState(files);
+
+  useEffect(() => {
+    setEditorFiles(files);
+    if (!files[editorFile]) {
+      setEditorFile(Object.keys(files)[0] || 'game.js');
+    }
+  }, [files]);
+
+  const handleFileChange = (filename: string) => setEditorFile(filename);
+  const handleCodeChange = (filename: string, code: string) => {
+    setEditorFiles(prev => ({ ...prev, [filename]: code }));
+    // Optionally: propagate changes up if you want live preview
+    // onCodeEdit && onCodeEdit(filename, code);
+  };
+  const handleAIAssist = async (filename: string, code: string) => {
+    const userPrompt = window.prompt('Describe what you want the AI to do (e.g. fix a bug, optimize, explain, etc.):');
+    if (!userPrompt) return;
+    try {
+      const result = await AICodeAssistant.analyzeCode(code, userPrompt);
+      window.alert(result);
+    } catch (e) {
+      window.alert('AI Code Assistant failed: ' + (e instanceof Error ? e.message : e));
+    }
+  };
 
   // Add handler for config changes
   const handleConfigChange = (newConfig: any) => {
@@ -112,7 +142,7 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
           </div>
           
           <div className="flex space-x-1 px-6">
-            {['preview', 'code', 'data', 'config'].map((tab) => (
+            {['preview', 'code', 'data', 'config', 'editor'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -122,7 +152,7 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab}
+                {tab === 'editor' ? 'Code Editor' : tab}
               </button>
             ))}
           </div>
@@ -306,6 +336,18 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
           {activeTab === 'config' && (
             <div className="space-y-4">
               <GameConfig config={gameData} onChange={handleConfigChange} />
+            </div>
+          )}
+
+          {activeTab === 'editor' && (
+            <div className="space-y-4">
+              <CodeEditor
+                files={editorFiles}
+                activeFile={editorFile}
+                onFileChange={handleFileChange}
+                onCodeChange={handleCodeChange}
+                onAIAssist={handleAIAssist}
+              />
             </div>
           )}
         </div>

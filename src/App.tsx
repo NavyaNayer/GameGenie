@@ -58,19 +58,30 @@ function App() {
             if (parsed && typeof parsed === 'object') {
               gameData = { ...gameData, ...parsed, usedFallback: true, fallbackReason: gameData.fallbackReason, rawLlamaOutput: gameData.rawLlamaOutput };
               files = FileWriter.createPrototypeFiles(gameData);
-              // If gameCode exists in parsed, always show it in preview/code tab
+              // Always use Together AI's gameCode for preview/code tab if present
               if (parsed.gameCode && typeof parsed.gameCode === 'string' && parsed.gameCode.trim().length > 0) {
                 files['game.js'] = parsed.gameCode;
                 gameData.fallbackParseWarning = 'Prototype validation failed, but code from Together AI is shown below. Some features may be missing.';
-                // Patch index.html to ensure canvas exists for preview
-                if (files['index.html']) {
-                  let html = files['index.html'];
-                  if (!/id=["']prototypeCanvas["']/.test(html)) {
-                    // Insert a canvas if missing
-                    html = html.replace(/<body[^>]*>/i, match => `${match}\n<canvas id="prototypeCanvas" width="800" height="600" style="display:block;margin:2rem auto;border:2px solid #667eea;border-radius:10px;"></canvas>`);
-                    files['index.html'] = html;
+              }
+              // Always patch index.html to ensure a single <canvas id="prototypeCanvas"> as first child of <body>
+              if (files['index.html']) {
+                let html = files['index.html'];
+                // Remove ALL existing canvas with id="prototypeCanvas" to avoid duplicates
+                html = html.replace(/<canvas[^>]*id=["']prototypeCanvas["'][^>]*>[\s\S]*?<\/canvas>/gi, '');
+                if (/<body[^>]*>/i.test(html)) {
+                  // Insert canvas as the first child of <body>
+                  html = html.replace(/(<body[^>]*>)/i, `$1\n<canvas id="prototypeCanvas" width="800" height="600" style="display:block;margin:2rem auto;border:2px solid #667eea;border-radius:10px;"></canvas>`);
+                } else if (/<html[^>]*>/i.test(html)) {
+                  // If <body> is missing but <html> exists, add <body> with canvas
+                  html = html.replace(/<html[^>]*>/i, match => `${match}\n<body>\n<canvas id="prototypeCanvas" width="800" height="600" style="display:block;margin:2rem auto;border:2px solid #667eea;border-radius:10px;"></canvas>`);
+                  if (!/<\/body>/i.test(html)) {
+                    html += '\n</body>';
                   }
+                } else {
+                  // If both <body> and <html> are missing, wrap everything
+                  html = `<html>\n<body>\n<canvas id="prototypeCanvas" width="800" height="600" style="display:block;margin:2rem auto;border:2px solid #667eea;border-radius:10px;"></canvas>\n${html}\n</body>\n</html>`;
                 }
+                files['index.html'] = html;
               }
             }
           }
