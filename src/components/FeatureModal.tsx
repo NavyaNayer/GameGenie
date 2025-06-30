@@ -49,10 +49,16 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
         case 'export':
           await handleExport();
           break;
+        case 'music':
+          await handleSoundEffectGeneration();
+          break;
+        case 'sounds':
+          await handleSoundEffectGeneration();
+          break;
         default:
           throw new Error('Unknown feature');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error(`Failed to execute ${feature}: ${error.message}`);
     } finally {
       setLoading(false);
@@ -78,6 +84,10 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
         return `Analyze the following game for accessibility issues and provide suggestions for improvement. Game: ${gameData.gameName || 'Untitled Game'}`;
       case 'export':
         return `Package and export all files for the game: ${gameData.gameName || 'Untitled Game'}.`;
+      case 'music':
+        return `Generate a short, original music loop suitable for a ${gameData.genre || 'fantasy'} game with theme: ${gameData.theme || 'adventure'}. Return a downloadable audio file (WAV or MP3) and a short description.`;
+      case 'sounds':
+        return `Generate a short, original sound effect suitable for a ${gameData.genre || 'fantasy'} game with theme: ${gameData.theme || 'adventure'}. Return a downloadable audio file (WAV or MP3) and a short description.`;
       default:
         return input;
     }
@@ -174,6 +184,14 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
       toast.error('Export failed');
       setResult({ type: 'error', content: 'Failed to export game package' });
     }
+  };
+
+  const handleSoundEffectGeneration = async () => {
+    const { AIAssetService } = await import('../services/aiAssetService');
+    const result = await AIAssetService.generateSound(getPrompt());
+    // Set type dynamically based on feature for correct UI rendering
+    setResult({ type: feature === 'music' ? 'sound' : 'sound', content: result });
+    toast.success(feature === 'music' ? 'Music generated!' : 'Sound effect generated!');
   };
 
   const renderResult = () => {
@@ -327,6 +345,34 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
               <span className="font-medium">Configuration Required</span>
             </div>
             <p className="text-sm text-gray-600">{result.content}</p>
+          </div>
+        );
+
+      case 'music':
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold">Generated Music</h3>
+            <audio controls className="w-full">
+              <source src={result.content} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+            <div className="text-sm text-gray-600">
+              <p>Right-click to download the audio file.</p>
+            </div>
+          </div>
+        );
+
+      case 'sound':
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold">Generated Sound Effect</h3>
+            <audio controls className="w-full">
+              <source src={result.content} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+            <div className="text-sm text-gray-600">
+              <p>Right-click to download the audio file.</p>
+            </div>
           </div>
         );
 

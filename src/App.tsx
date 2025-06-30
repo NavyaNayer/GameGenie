@@ -311,7 +311,7 @@ function App() {
           {/* Footer */}
           <footer className="mt-16 text-center text-gray-600">
             <p className="text-sm">
-              Powered by Together AI • Llama 3.3 • Built with React & TypeScript
+              Made by Team Game Genie
             </p>
             <p className="text-xs mt-2">
               Game Genie: Complete AI-powered game prototyping suite with 9 advanced features

@@ -69,6 +69,8 @@ export class AIAssetService {
     }
   }
 
+  
+
   private static async pollReplicateResult(predictionId: string): Promise<string> {
     const maxAttempts = 60; // Increase timeout for longer operations
     let attempts = 0;
@@ -151,55 +153,6 @@ export class AIAssetService {
 
     const blob = new Blob([buffer], { type: 'audio/wav' });
     return URL.createObjectURL(blob);
-  }
-
-  // 3. AI Music Generation
-  static async generateMusic(prompt: string, duration: number = 30): Promise<string> {
-    try {
-      // Check if Replicate API key is configured
-      if (!API_CONFIG.REPLICATE.apiKey || API_CONFIG.REPLICATE.apiKey === 'r8_YOUR_TOKEN_HERE') {
-        throw new Error('Replicate API key not configured');
-      }
-
-      console.log('Generating music with Replicate API...');
-
-      const response = await axios.post(
-        `${API_CONFIG.REPLICATE.endpoint}/predictions`,
-        {
-          version: "facebook/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906",
-          input: {
-            model_version: "large",
-            prompt: prompt,
-            duration: Math.min(duration, 30), // Limit to 30 seconds for free tier
-            temperature: 1,
-            top_k: 250,
-            top_p: 0,
-            seed: -1
-          }
-        },
-        {
-          headers: {
-            'Authorization': `Token ${API_CONFIG.REPLICATE.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      const predictionId = response.data.id;
-      return await this.pollReplicateResult(predictionId);
-    } catch (error: any) {
-      console.error('Music generation failed:', error);
-      
-      if (error.response?.status === 401) {
-        toast.error('Invalid Replicate API key - please check your configuration');
-      } else if (error.response?.status === 402) {
-        toast.error('Replicate API quota exceeded - please check your billing');
-      } else {
-        toast.error('Music generation failed - using placeholder audio');
-      }
-      
-      return this.generateFallbackAudio(duration);
-    }
   }
 
   // 4. AI Image Generation using OpenAI (DALL·E)

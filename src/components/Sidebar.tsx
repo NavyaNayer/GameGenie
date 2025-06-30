@@ -232,38 +232,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
               {/* Quick Actions */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Quick Actions</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   <button
                     onClick={() => setShowAssetGenerator(true)}
-                    className="p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group"
+                    className="p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors group col-span-3"
                   >
                     <Image className="text-purple-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
                     <div className="text-xs text-purple-700 font-medium">Images</div>
                   </button>
                   <button
-                    onClick={() => setShowAssetGenerator(true)}
-                    className="p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
-                  >
-                    <Volume2 className="text-blue-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
-                    <div className="text-xs text-blue-700 font-medium">Sounds</div>
-                  </button>
-                  <button
-                    onClick={() => setShowAssetGenerator(true)}
-                    className="p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group"
+                    onClick={() => setActiveFeature('audio')}
+                    className="p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group col-span-3"
                   >
                     <Music className="text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
-                    <div className="text-xs text-green-700 font-medium">Music</div>
+                    <div className="text-xs text-green-700 font-medium">Audio</div>
                   </button>
                   <button
                     onClick={() => setShowMyAssets(true)}
-                    className="p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors group"
+                    className="p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors group col-span-3"
                   >
                     <Download className="text-yellow-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
                     <div className="text-xs text-yellow-700 font-medium">My Assets</div>
                   </button>
                   <button
                     onClick={() => setShowSampleGames(true)}
-                    className="p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors group col-span-2"
+                    className="p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors group col-span-3"
                   >
                     <Gamepad2 className="text-pink-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
                     <div className="text-xs text-pink-700 font-medium">Sample Games</div>
