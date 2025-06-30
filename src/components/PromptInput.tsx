@@ -30,7 +30,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({ onSubmit, isGenerating
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <Wand2 className="text-blue-600 mr-3" size={32} />
-          <h1 className="text-3xl font-bold text-gray-900">Prompt-to-Prototype Generator</h1>
+          <h1 className="text-3xl font-bold text-indigo-700">Game Genie</h1>
           <Sparkles className="text-purple-600 ml-3" size={32} />
         </div>
         <p className="text-gray-600 text-lg leading-relaxed">

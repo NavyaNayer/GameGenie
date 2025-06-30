@@ -22,12 +22,15 @@ export const FeaturePanel: React.FC<FeaturePanelProps> = ({ gameData, files, onU
           <p className="text-blue-900">{gameData.description}</p>
         </div>
       )}
+      {/* Remove Raw Llama Output display from UI */}
+      {/*
       {gameData?.usedFallback && gameData?.rawLlamaOutput && (
         <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
           <h3 className="font-semibold text-yellow-700 mb-1">Raw Llama Output (Console Output)</h3>
           <pre className="text-yellow-900 text-xs whitespace-pre-wrap overflow-x-auto">{gameData.rawLlamaOutput}</pre>
         </div>
       )}
+      */}
       <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto mb-4">
         {JSON.stringify(gameData, null, 2)}
       </pre>

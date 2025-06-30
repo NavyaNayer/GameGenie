@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { PromptInput } from './components/PromptInput';
 import { GamePreview } from './components/GamePreview';
-import { FeaturePanel } from './components/FeaturePanel';
 import { Sidebar } from './components/Sidebar';
 import { GameGenerator } from './services/gameGenerator';
 import { FileWriter } from './utils/fileWriter';
@@ -102,8 +101,8 @@ function App() {
       });
 
       if (gameData.usedFallback) {
-        setSuccess(`⚠️ Generated with fallback: ${gameData.fallbackReason || 'AI output could not be parsed. Showing best effort.'}`);
-        toast(`Generated with fallback: ${gameData.fallbackReason || 'AI output could not be parsed.'}`, { icon: '⚠️' });
+        // setSuccess(`⚠️ Generated with fallback: ${gameData.fallbackReason || 'AI output could not be parsed. Showing best effort.'}`);
+        // toast(`Generated with fallback: ${gameData.fallbackReason || 'AI output could not be parsed.'}`, { icon: '⚠️' });
       } else {
         setSuccess(`🎮 ${gameData.gameName} generated successfully! Your ${gameData.genre?.toLowerCase() || ''} game is ready to play.`);
         toast.success(`Generated ${gameData.gameName}!`);
@@ -223,7 +222,7 @@ function App() {
           >
             <Menu size={24} />
           </button>
-          <h1 className="text-xl font-bold text-gray-900">Game Generator</h1>
+          <h1 className="text-xl font-bold text-indigo-700">Game Genie</h1>
           <div className="w-10"></div> {/* Spacer for centering */}
         </div>
       </div>
@@ -234,7 +233,7 @@ function App() {
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowMobileSidebar(false)} />
           <div className="fixed left-0 top-0 h-full w-80 bg-white shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">AI Features</h2>
+              <h2 className="text-lg font-bold text-indigo-700">Game Genie Features</h2>
               <button
                 onClick={() => setShowMobileSidebar(false)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -305,11 +304,6 @@ function App() {
                   isRegenerating={isRegenerating}
                   onConfigChange={handleConfigChange}
                 />
-                <FeaturePanel
-                  gameData={generatedGame.gameData}
-                  files={generatedGame.files}
-                  onUpdate={handleGameUpdate}
-                />
               </>
             )}
           </div>
@@ -320,7 +314,7 @@ function App() {
               Powered by Together AI • Llama 3.3 • Built with React & TypeScript
             </p>
             <p className="text-xs mt-2">
-              Complete AI-powered game development suite with 9 advanced features
+              Game Genie: Complete AI-powered game prototyping suite with 9 advanced features
             </p>
           </footer>
         </div>

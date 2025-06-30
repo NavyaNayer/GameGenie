@@ -4,6 +4,7 @@ import { AssetGenerator } from './AssetGenerator';
 import { GameConfig } from './GameConfig';
 import { CodeEditor } from './CodeEditor';
 import { AICodeAssistant } from '../services/aiCodeAssistant';
+import { AIAssetService } from '../services/aiAssetService';
 
 interface GamePreviewProps {
   gameData: any;
@@ -95,6 +96,25 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
     };
   }, [createPreviewContent]);
 
+  const [gameImageUrl, setGameImageUrl] = useState<string | null>(null);
+
+  // Generate a preview image for the game when gameData changes (use OpenAI)
+  useEffect(() => {
+    async function generateGameImage() {
+      if (!gameData?.gameName && !gameData?.description) return;
+      // Compose a prompt for the game screen
+      const prompt = `A screenshot or main scene of a ${gameData.genre} game called '${gameData.gameName}' with theme '${gameData.theme}'. ${gameData.description || ''}`;
+      try {
+        // Use the AIAssetService to generate an image with OpenAI
+        const url = await AIAssetService.generateImageWithOpenAI(prompt);
+        setGameImageUrl(url);
+      } catch (e) {
+        setGameImageUrl(null);
+      }
+    }
+    generateGameImage();
+  }, [gameData?.gameName, gameData?.description, gameData?.genre, gameData?.theme]);
+
   const regenerateComponents = [
     { key: 'gameCode', label: 'Game Code', icon: Code },
     { key: 'characters', label: 'Characters', icon: Users },
@@ -142,7 +162,7 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
           </div>
           
           <div className="flex space-x-1 px-6">
-            {['preview', 'code', 'data', 'config', 'editor'].map((tab) => (
+            {['preview', 'flow', 'code', 'data', 'config', 'editor'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -152,7 +172,7 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab === 'editor' ? 'Code Editor' : tab}
+                {tab === 'editor' ? 'Code Editor' : tab === 'flow' ? 'Game Flow' : tab}
               </button>
             ))}
           </div>
@@ -161,25 +181,13 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
         <div className="p-6">
           {activeTab === 'preview' && (
             <div className="space-y-6">
-              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
-                {previewError ? (
-                  <div className="flex items-center justify-center h-full text-red-500 flex-col">
-                    <Eye className="mb-2" size={24} />
-                    <p>{previewError}</p>
-                    <p className="text-sm text-gray-500 mt-2">Try regenerating the game code</p>
-                  </div>
-                ) : previewUrl ? (
-                  <iframe
-                    src={previewUrl}
-                    className="w-full h-full border-0"
-                    title="Game Preview"
-                    sandbox="allow-scripts allow-same-origin"
-                    onError={() => setPreviewError('Failed to load game preview')}
-                  />
+              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 flex items-center justify-center">
+                {gameImageUrl ? (
+                  <img src={gameImageUrl} alt="AI generated game preview" className="object-contain w-full h-full" />
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-500">
                     <Eye className="mr-2 animate-pulse" size={24} />
-                    Loading game preview...
+                    Generating game preview image...
                   </div>
                 )}
               </div>
@@ -218,6 +226,71 @@ export const GamePreview: React.FC<GamePreviewProps> = ({
                     <span className="font-medium">Special:</span>
                     <p className="text-gray-600">{gameData.controls?.special || 'Mouse click'}</p>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'flow' && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
+                <h3 className="text-xl font-bold text-blue-800 mb-4">Game Flow Overview</h3>
+                <div className="mb-4">
+                  <span className="font-semibold">How the game works:</span>
+                  <p className="text-blue-900 mt-1">{gameData.rules || 'No rules provided.'}</p>
+                </div>
+                <div className="mb-4">
+                  <span className="font-semibold">Game Mechanics:</span>
+                  <ul className="list-disc ml-6 mt-1 text-blue-900">
+                    {(gameData.mechanics || []).map((mechanic: string, idx: number) => (
+                      <li key={idx}>{mechanic}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <span className="font-semibold">Levels:</span>
+                  <ul className="list-disc ml-6 mt-1 text-blue-900">
+                    {(gameData.levels || []).map((level: any, idx: number) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{level.name}:</span> {level.description}
+                        {level.objectives && (
+                          <div className="text-xs text-blue-700 ml-2">Objectives: {level.objectives.join(', ')}</div>
+                        )}
+                        {level.enemies && (
+                          <div className="text-xs text-blue-700 ml-2">Enemies: {level.enemies.join(', ')}</div>
+                        )}
+                        {level.items && (
+                          <div className="text-xs text-blue-700 ml-2">Items: {level.items.join(', ')}</div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <span className="font-semibold">Characters:</span>
+                  <ul className="list-disc ml-6 mt-1 text-blue-900">
+                    {(gameData.characters || []).map((char: any, idx: number) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{char.name}:</span> {char.description}
+                        {char.abilities && char.abilities.length > 0 && (
+                          <span className="text-xs text-blue-700 ml-2">Abilities: {char.abilities.join(', ')}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <span className="font-semibold">Items:</span>
+                  <ul className="list-disc ml-6 mt-1 text-blue-900">
+                    {(gameData.items || []).map((item: any, idx: number) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{item.name}:</span> {item.description}
+                        {item.effect && (
+                          <span className="text-xs text-blue-700 ml-2">Effect: {item.effect}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
