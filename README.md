@@ -4,6 +4,12 @@
 
 ---
 
+### 🖼️ Screenshots
+
+![Game Genie Screenshot 1](./gg.jpg)
+![Game Genie Screenshot 2](./gg2.jpg)
+
+
 ## 🚀 Features
 
 ### 🧠 AI Game Prototyping
