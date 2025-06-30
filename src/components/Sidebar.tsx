@@ -241,11 +241,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
                     <div className="text-xs text-purple-700 font-medium">Images</div>
                   </button>
                   <button
-                    onClick={() => setActiveFeature('audio')}
+                    onClick={() => setShowAssetGenerator(true)}
                     className="p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors group col-span-3"
                   >
                     <Music className="text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
-                    <div className="text-xs text-green-700 font-medium">Audio</div>
+                    <div className="text-xs text-green-700 font-medium">Sounds</div>
                   </button>
                   <button
                     onClick={() => setShowMyAssets(true)}

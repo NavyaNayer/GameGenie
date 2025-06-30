@@ -6,11 +6,6 @@ export class AIAssetService {
   // 1. AI Image Generation using Hugging Face
   static async generateImage(prompt: string, style: string = 'realistic'): Promise<string> {
     try {
-      // Check if Hugging Face API key is configured
-      if (API_CONFIG.HUGGING_FACE.apiKey === 'hf_YOUR_TOKEN_HERE') {
-        throw new Error('Hugging Face API key not configured');
-      }
-
       const response = await axios.post(
         `${API_CONFIG.HUGGING_FACE.endpoint}/stabilityai/stable-diffusion-2-1`,
         {
@@ -158,9 +153,6 @@ export class AIAssetService {
   // 4. AI Image Generation using OpenAI (DALL·E)
   static async generateImageWithOpenAI(prompt: string): Promise<string> {
     try {
-      if (!API_CONFIG.OPENAI.apiKey) {
-        throw new Error('OpenAI API key not configured');
-      }
       const response = await axios.post(
         `${API_CONFIG.OPENAI.endpoint}/images/generations`,
         {

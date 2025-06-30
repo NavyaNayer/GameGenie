@@ -299,13 +299,7 @@ export const AssetGenerator: React.FC<AssetGeneratorProps> = ({ gameData, onClos
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 p-4 bg-gray-50">
-          <div className="text-sm text-gray-600 text-center">
-            <p>💡 <strong>Tip:</strong> Configure your API keys in <code>src/config/apiKeys.ts</code> for full functionality</p>
-            <p className="mt-1">Using <strong>OpenAI</strong> for images, Replicate for sounds/music</p>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
