@@ -10,6 +10,8 @@ import { AnalyticsService } from './services/analyticsService';
 import { AlertCircle, CheckCircle, Menu, X } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import toast from 'react-hot-toast';
+import { GameConfig } from './components/GameConfig';
+import * as Generation from './services/generation';
 
 interface GeneratedGame {
   gameData: any;
@@ -24,6 +26,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [gameConfig, setGameConfig] = useState<any>(null);
 
   // Listen for analytics events from game iframe
   React.useEffect(() => {
@@ -43,8 +46,38 @@ function App() {
     setSuccess(null);
 
     try {
-      const gameData = await GameGenerator.generateGame(prompt);
-      const files = FileWriter.createPrototypeFiles(gameData);
+      let gameData = await GameGenerator.generateGame(prompt);
+      let files = FileWriter.createPrototypeFiles(gameData);
+
+      // If fallback is used but rawLlamaOutput exists, try to parse it for UI
+      if (gameData.usedFallback && gameData.rawLlamaOutput) {
+        try {
+          const jsonMatch = Generation.extractLargestJsonObject(gameData.rawLlamaOutput);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch);
+            if (parsed && typeof parsed === 'object') {
+              gameData = { ...gameData, ...parsed, usedFallback: true, fallbackReason: gameData.fallbackReason, rawLlamaOutput: gameData.rawLlamaOutput };
+              files = FileWriter.createPrototypeFiles(gameData);
+              // If gameCode exists in parsed, always show it in preview/code tab
+              if (parsed.gameCode && typeof parsed.gameCode === 'string' && parsed.gameCode.trim().length > 0) {
+                files['game.js'] = parsed.gameCode;
+                gameData.fallbackParseWarning = 'Prototype validation failed, but code from Together AI is shown below. Some features may be missing.';
+                // Patch index.html to ensure canvas exists for preview
+                if (files['index.html']) {
+                  let html = files['index.html'];
+                  if (!/id=["']prototypeCanvas["']/.test(html)) {
+                    // Insert a canvas if missing
+                    html = html.replace(/<body[^>]*>/i, match => `${match}\n<canvas id="prototypeCanvas" width="800" height="600" style="display:block;margin:2rem auto;border:2px solid #667eea;border-radius:10px;"></canvas>`);
+                    files['index.html'] = html;
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          gameData.fallbackParseWarning = 'Could not parse raw Llama output as JSON.';
+        }
+      }
 
       // Inject analytics tracking into game code
       if (files['game.js']) {
@@ -138,6 +171,13 @@ function App() {
         gameData: updatedData,
         files: updatedFiles
       });
+    }
+  };
+
+  const handleConfigChange = (newConfig: any) => {
+    setGameConfig(newConfig);
+    if (generatedGame) {
+      handleGameUpdate(newConfig);
     }
   };
 
@@ -252,8 +292,8 @@ function App() {
                   onDownload={handleDownloadGame}
                   onRegenerate={handleRegenerateComponent}
                   isRegenerating={isRegenerating}
+                  onConfigChange={handleConfigChange}
                 />
-                
                 <FeaturePanel
                   gameData={generatedGame.gameData}
                   files={generatedGame.files}
