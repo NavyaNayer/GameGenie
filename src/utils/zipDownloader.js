@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 
 export class ZipDownloader {
-  static async createGameZip(gameData, files) {
+  static async createPrototypeZip(prototypeData, files) {
     const zip = new JSZip();
     
     // Add all generated files to the zip
@@ -33,24 +33,24 @@ export class ZipDownloader {
     return content;
   }
 
-  static downloadZip(zipBlob, gameName) {
+  static downloadZip(zipBlob, prototypeName) {
     const url = URL.createObjectURL(zipBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${gameName.toLowerCase().replace(/\s+/g, '-')}-game.zip`;
+    link.download = `${prototypeName.toLowerCase().replace(/\s+/g, '-')}-prototype.zip`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }
 
-  static async downloadGameFiles(gameData, files) {
+  static async downloadPrototypeFiles(prototypeData, files) {
     try {
-      const zipBlob = await this.createGameZip(gameData, files);
-      this.downloadZip(zipBlob, gameData.gameName);
+      const zipBlob = await this.createPrototypeZip(prototypeData, files);
+      this.downloadZip(zipBlob, prototypeData.gameName);
     } catch (error) {
       console.error('Failed to create zip download:', error);
-      throw new Error('Failed to create downloadable game package');
+      throw new Error('Failed to create downloadable prototype package');
     }
   }
 }

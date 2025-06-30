@@ -17,12 +17,12 @@ export const PromptInput: React.FC<PromptInputProps> = ({ onSubmit, isGenerating
   };
 
   const examplePrompts = [
-    "A fantasy RPG where a mage fights evil spirits in haunted dungeons",
-    "A space shooter where you defend Earth from alien invasion",
-    "A puzzle platformer with a robot collecting energy cores",
-    "A steampunk adventure with airships and mechanical creatures",
-    "A medieval strategy game where you build and defend castles",
-    "A cyberpunk racing game through neon-lit city streets"
+    "A fantasy RPG prototype where a mage fights evil spirits in haunted dungeons",
+    "A space shooter prototype where you defend Earth from alien invasion",
+    "A puzzle platformer prototype with a robot collecting energy cores",
+    "A steampunk adventure prototype with airships and mechanical creatures",
+    "A medieval strategy prototype where you build and defend castles",
+    "A cyberpunk racing prototype through neon-lit city streets"
   ];
 
   return (
@@ -30,25 +30,25 @@ export const PromptInput: React.FC<PromptInputProps> = ({ onSubmit, isGenerating
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
           <Wand2 className="text-blue-600 mr-3" size={32} />
-          <h1 className="text-3xl font-bold text-gray-900">Prompt-to-Game Generator</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Prompt-to-Prototype Generator</h1>
           <Sparkles className="text-purple-600 ml-3" size={32} />
         </div>
         <p className="text-gray-600 text-lg leading-relaxed">
-          Transform your game ideas into playable experiences using AI. 
-          Describe any game concept and watch it come to life!
+          Transform your prototype ideas into playable experiences using AI. 
+          Describe any prototype concept and watch it come to life!
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-2">
-            Describe your game idea
+            Describe your prototype idea
           </label>
           <textarea
             id="prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Example: A fantasy RPG where a mage fights evil spirits in haunted dungeons with magic spells and ancient artifacts..."
+            placeholder="Example: A fantasy RPG prototype where a mage fights evil spirits in haunted dungeons with magic spells and ancient artifacts..."
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
             rows={4}
           />
@@ -62,12 +62,12 @@ export const PromptInput: React.FC<PromptInputProps> = ({ onSubmit, isGenerating
           {isGenerating ? (
             <>
               <Loader2 className="animate-spin" size={20} />
-              Generating Game...
+              Generating Prototype...
             </>
           ) : (
             <>
               <Gamepad2 size={20} />
-              Generate Game
+              Generate Prototype
             </>
           )}
         </button>
