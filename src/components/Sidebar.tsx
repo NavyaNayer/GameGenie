@@ -15,7 +15,8 @@ import {
   Image,
   Music,
   Volume2,
-  X
+  X,
+  Gamepad2
 } from 'lucide-react';
 import { FeatureModal } from './FeatureModal';
 import { AssetGenerator } from './AssetGenerator';
@@ -49,6 +50,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
     sounds: [],
     music: []
   });
+  // Add state for Sample Games modal
+  const [showSampleGames, setShowSampleGames] = useState(false);
 
   // Check API status on component mount
   useEffect(() => {
@@ -258,6 +261,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
                     <Download className="text-yellow-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
                     <div className="text-xs text-yellow-700 font-medium">My Assets</div>
                   </button>
+                  <button
+                    onClick={() => setShowSampleGames(true)}
+                    className="p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors group col-span-2"
+                  >
+                    <Gamepad2 className="text-pink-600 mx-auto mb-1 group-hover:scale-110 transition-transform" size={20} />
+                    <div className="text-xs text-pink-700 font-medium">Sample Games</div>
+                  </button>
                 </div>
               </div>
 
@@ -272,22 +282,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
                     <div className="space-y-2">
                       {categoryFeatures.map(feature => {
                         const Icon = feature.icon;
+                        // Add a note below the Procedural Content button
+                        const isProcedural = feature.id === 'procedural';
                         return (
-                          <button
-                            key={feature.id}
-                            onClick={() => handleFeatureClick(feature.id)}
-                            className="w-full p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all group"
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className={`w-8 h-8 ${feature.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                <Icon className="text-white" size={16} />
+                          <div key={feature.id}>
+                            <button
+                              onClick={() => handleFeatureClick(feature.id)}
+                              className="w-full p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className={`w-8 h-8 ${feature.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                  <Icon className="text-white" size={16} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-gray-900 text-sm truncate">{feature.name}</div>
+                                  <div className="text-xs text-gray-600 leading-relaxed">{feature.description}</div>
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 text-sm truncate">{feature.name}</div>
-                                <div className="text-xs text-gray-600 leading-relaxed">{feature.description}</div>
-                              </div>
-                            </div>
-                          </button>
+                            </button>
+                            
+                          </div>
                         );
                       })}
                     </div>
@@ -295,45 +309,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
                 );
               })}
 
-              {/* API Status */}
-              <div className="mt-6 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">🔧 API Status</h4>
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span>Hugging Face</span>
-                    <span className={getStatusColor(apiStatus.huggingFace)}>
-                      {getStatusIcon(apiStatus.huggingFace)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Replicate</span>
-                    <span className={getStatusColor(apiStatus.replicate)}>
-                      {getStatusIcon(apiStatus.replicate)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Supabase</span>
-                    <span className={getStatusColor(apiStatus.supabase)}>
-                      {getStatusIcon(apiStatus.supabase)}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600 mt-2">
-                  {apiStatus.replicate 
-                    ? "🎵 Sound & Music generation ready!" 
-                    : "⚠️ Check your Replicate API key configuration"
-                  }
-                </p>
-              </div>
-
-              {/* Debug Info */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">🔍 Debug Info</h4>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div>Replicate Key: {API_CONFIG.REPLICATE.apiKey.substring(0, 10)}...</div>
-                  <div>Endpoint: {API_CONFIG.REPLICATE.endpoint}</div>
-                </div>
-              </div>
             </div>
           ) : (
             // Collapsed view
@@ -410,6 +385,55 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameData, files, onUpdate }) =
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sample Games Modal */}
+      {showSampleGames && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-auto p-6 relative">
+            <button
+              onClick={() => setShowSampleGames(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+              <Gamepad2 className="text-pink-600" size={24} /> Sample Games
+            </h2>
+            <ul className="space-y-4">
+              <li>
+                <a
+                  href="/samples/breakout.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block px-4 py-3 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors"
+                >
+                  Breakout
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/samples/memory.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block px-4 py-3 rounded-lg bg-pink-50 hover:bg-pink-100 text-pink-700 font-semibold transition-colors"
+                >
+                  Memory
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/samples/racing.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block px-4 py-3 rounded-lg bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold transition-colors"
+                >
+                  Racing
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       )}

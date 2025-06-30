@@ -1,8 +1,18 @@
+// ProceduralGenerator.ts
+// This file provides procedural (algorithmic) generation of game levels for different genres.
+// It supports dungeon, platformer, maze, and open-world level generation, using random algorithms and optional AI for creative content.
+// Each method below generates a different type of level structure, returning a data object describing the generated map, enemies, items, etc.
+
 import { LlamaService } from './llamaService';
 
 export class ProceduralGenerator {
+  // Cache for AI-generated enemy lists
   private static llamaEnemiesCache: { [key: string]: string[] } = {};
 
+  /**
+   * Main entry: Generate a level of the given type (dungeon, platformer, maze, open-world)
+   * Returns a data object describing the generated level structure.
+   */
   static generateLevel(params: {
     width: number;
     height: number;
@@ -24,6 +34,10 @@ export class ProceduralGenerator {
     }
   }
 
+  /**
+   * Main entry: Generate a level with an AI prompt (for creative enemy names, etc.)
+   * Only dungeon supports prompt-based AI enemies for now.
+   */
   static async generateLevelWithPrompt(params: {
     width: number;
     height: number;
@@ -41,6 +55,7 @@ export class ProceduralGenerator {
     }
   }
 
+  // Helper: Get a list of creative enemy names from Llama AI, with caching
   private static async getPromptEnemy(theme: string, prompt: string, n = 5): Promise<string[]> {
     const cacheKey = `${theme}|${prompt}`;
     if (this.llamaEnemiesCache[cacheKey]) return this.llamaEnemiesCache[cacheKey];
@@ -49,6 +64,12 @@ export class ProceduralGenerator {
     return list;
   }
 
+  /**
+   * Dungeon Generation:
+   * - Creates a grid with random rooms and corridors connecting them.
+   * - Populates rooms with random enemies and items based on theme and difficulty.
+   * - Returns the grid, rooms, enemies, items, player start, and exit positions.
+   */
   private static generateDungeon(params: any) {
     const { width, height, difficulty, theme } = params;
     const grid = Array(height).fill(null).map(() => Array(width).fill(0));
@@ -135,6 +156,10 @@ export class ProceduralGenerator {
     };
   }
 
+  /**
+   * Dungeon Generation with AI prompt:
+   * - Same as above, but uses Llama AI to generate creative enemy names based on the prompt.
+   */
   private static async generateDungeonWithPrompt(params: any) {
     const { width, height, difficulty, theme, prompt } = params;
     const grid = Array(height).fill(null).map(() => Array(width).fill(0));
@@ -206,6 +231,12 @@ export class ProceduralGenerator {
     };
   }
 
+  /**
+   * Platformer Generation:
+   * - Creates a grid with ground, platforms, gaps, and hazards.
+   * - Adds collectibles and enemies on platforms.
+   * - Returns the grid, player start, exit, collectibles, and enemies.
+   */
   private static generatePlatformer(params: any) {
     const { width, height, difficulty, theme } = params;
     const grid = Array(height).fill(null).map(() => Array(width).fill(0));
@@ -252,6 +283,11 @@ export class ProceduralGenerator {
     };
   }
 
+  /**
+   * Maze Generation:
+   * - Uses recursive backtracking to carve a maze from a grid of walls.
+   * - Returns the grid, player start, and exit positions.
+   */
   private static generateMaze(params: any) {
     const { width, height } = params;
     const grid = Array(height).fill(null).map(() => Array(width).fill(1)); // Start with walls
@@ -299,6 +335,12 @@ export class ProceduralGenerator {
     };
   }
 
+  /**
+   * Open World Generation:
+   * - Simulates terrain using a simple noise function for hills, water, and plains.
+   * - Adds random points of interest (villages, dungeons, etc.).
+   * - Returns the grid, points of interest, and player start position.
+   */
   private static generateOpenWorld(params: any) {
     const { width, height, difficulty, theme } = params;
     const grid = Array(height).fill(null).map(() => Array(width).fill(0));

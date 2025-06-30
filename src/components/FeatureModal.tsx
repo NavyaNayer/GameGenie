@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Loader2, CheckCircle, AlertCircle, Info, Download } from 'lucide-react';
+import { Wand2, Code, Layers, MessageSquare, HelpCircle, BarChart3, Users, Shield, Download, X, Loader2, AlertCircle, Info, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface FeatureModalProps {
@@ -59,22 +59,50 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
     }
   };
 
+  // Prompt templates for each feature
+  const getPrompt = () => {
+    switch (feature) {
+      case 'code-assistant':
+        return `Analyze the following game code and provide suggestions or improvements.\n${input}`;
+      case 'procedural':
+        return `Generate a ${input || 'dungeon'} level for a ${gameData.genre || 'fantasy'} game with theme: ${gameData.theme || 'adventure'}. Return a JSON structure representing the level grid and features.`;
+      case 'collaboration':
+        return `Set up a real-time collaboration project for the game: ${gameData.gameName || 'Untitled Game'}. Invite: ${input}`;
+      case 'analytics':
+        return `Provide analytics for the game: ${gameData.gameName || 'Untitled Game'}. Include player behavior, session count, and completion rate.`;
+      case 'npc-dialogue':
+        return `Generate a realistic, multi-turn conversation between two or more game characters based on the following context.\nGame genre: ${gameData.genre || 'fantasy'}\nSetting: ${gameData.theme || 'village'}\nSituation: ${input || 'meeting for the first time'}\nFormat the output as a JSON array of objects, each with 'speaker' and 'text', e.g. [{"speaker": "NPC1", "text": "Hello!"}, ...]`;
+      case 'tutorials':
+        return `Create a step-by-step tutorial for the game: ${gameData.gameName || 'Untitled Game'}. Game mechanics: ${gameData.mechanics?.join(', ') || 'N/A'}. Focus on: ${input}`;
+      case 'accessibility':
+        return `Analyze the following game for accessibility issues and provide suggestions for improvement. Game: ${gameData.gameName || 'Untitled Game'}`;
+      case 'export':
+        return `Package and export all files for the game: ${gameData.gameName || 'Untitled Game'}.`;
+      default:
+        return input;
+    }
+  };
+
   const handleCodeAssistant = async () => {
     const { AICodeAssistant } = await import('../services/aiCodeAssistant');
-    const analysis = await AICodeAssistant.analyzeCode(files['game.js'] || '', input);
+    const analysis = await AICodeAssistant.analyzeCode(files['game.js'] || '', getPrompt());
     setResult({ type: 'analysis', content: analysis });
     toast.success('Code analysis completed!');
   };
 
   const handleProceduralGeneration = async () => {
     const { ProceduralGenerator } = await import('../services/proceduralGenerator');
+    let type = (input || '').trim().toLowerCase();
+    if (!['dungeon', 'platformer', 'maze', 'open-world'].includes(type)) {
+      type = 'dungeon';
+    }
     const params = {
       width: 50,
       height: 30,
-      type: input as any || 'dungeon',
+      type: type as 'dungeon' | 'platformer' | 'maze' | 'open-world',
       difficulty: 0.5,
       theme: gameData.theme || 'fantasy',
-      prompt: input || ''
+      prompt: getPrompt()
     };
     const level = await ProceduralGenerator.generateLevelWithPrompt(params);
     setResult({ type: 'level', content: level });
@@ -102,16 +130,29 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
 
   const handleNPCDialogue = async () => {
     const { AICodeAssistant } = await import('../services/aiCodeAssistant');
-    const prompt = `Generate dialogue for NPCs in a ${gameData.genre} game with theme: ${gameData.theme}. Context: ${input}`;
-    const dialogue = await AICodeAssistant.analyzeCode('', prompt);
-    setResult({ type: 'dialogue', content: dialogue });
+    const raw = await AICodeAssistant.analyzeCode('', getPrompt());
+    let dialogueArr: any[] = [];
+    try {
+      dialogueArr = JSON.parse(raw);
+    } catch {
+      const match = raw.match(/\[.*\]/s);
+      if (match) {
+        try {
+          dialogueArr = JSON.parse(match[0]);
+        } catch {
+          dialogueArr = [];
+        }
+      } else {
+        dialogueArr = [];
+      }
+    }
+    setResult({ type: 'dialogue', content: dialogueArr.length > 0 ? dialogueArr : raw });
     toast.success('NPC dialogue generated!');
   };
 
   const handleTutorials = async () => {
     const { AICodeAssistant } = await import('../services/aiCodeAssistant');
-    const prompt = `Create a tutorial for this game: ${gameData.gameName}. Game mechanics: ${gameData.mechanics?.join(', ')}. Focus on: ${input}`;
-    const tutorial = await AICodeAssistant.analyzeCode('', prompt);
+    const tutorial = await AICodeAssistant.analyzeCode('', getPrompt());
     setResult({ type: 'tutorial', content: tutorial });
     toast.success('Tutorial generated!');
   };
@@ -140,14 +181,36 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
 
     switch (result.type) {
       case 'analysis':
-      case 'dialogue':
       case 'tutorial':
         return (
           <div className="bg-gray-50 rounded-lg p-4">
             <pre className="whitespace-pre-wrap text-sm">{result.content}</pre>
           </div>
         );
-
+      case 'dialogue':
+        // Only apply chat UI for dialogue generated by the prompt (not fallback or other features)
+        if (Array.isArray(result.content)) {
+          return (
+            <div className="space-y-2">
+              {result.content.map((turn: any, idx: number) => (
+                <div key={idx} className={`flex ${turn.speaker === 'Player' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[70%] px-4 py-2 rounded-2xl shadow text-sm whitespace-pre-line ${turn.speaker === 'Player' ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-100 text-gray-900 mr-auto'}`}
+                    title={turn.speaker}
+                  >
+                    <span className="block font-semibold mb-1 text-xs opacity-70">{turn.speaker}</span>
+                    {turn.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+        // Fallback: just show as preformatted text
+        return (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <pre className="whitespace-pre-wrap text-sm">{result.content}</pre>
+          </div>
+        );
       case 'level':
         return (
           <div className="space-y-4">
@@ -272,6 +335,23 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
     }
   };
 
+  // Get feature details for icon and name
+  const featureList = [
+    { id: 'asset-generator', name: 'AI Asset Generator', icon: Wand2 },
+    { id: 'code-assistant', name: 'AI Prototype Code Assistant', icon: Code },
+    { id: 'procedural', name: 'Procedural Content', icon: Layers },
+    { id: 'npc-dialogue', name: 'AI NPC Dialogue', icon: MessageSquare },
+    { id: 'tutorials', name: 'AI Tutorials', icon: HelpCircle },
+    { id: 'analytics', name: 'Prototype Analytics', icon: BarChart3 },
+    { id: 'collaboration', name: 'Collaboration', icon: Users },
+    { id: 'accessibility', name: 'Accessibility Checker', icon: Shield },
+    { id: 'export', name: 'Export & Share', icon: Download }
+  ];
+  const featureObj = featureList.find(f => f.id === feature);
+  const Icon = featureObj ? featureObj.icon : null;
+  const featureName = featureObj ? featureObj.name : feature;
+  const isProcedural = feature === 'procedural';
+
   const getFeatureTitle = () => {
     const titles = {
       'code-assistant': 'AI Code Assistant',
@@ -305,70 +385,77 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">{getFeatureTitle()}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-2">
+          {Icon && <Icon className="text-blue-600" size={24} />} {featureName}
+        </h2>
+        {isProcedural && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
+            <strong>What is Procedural Content Generation?</strong><br />
+            Procedural generation uses algorithms (and sometimes AI) to automatically create unique levels, maps, or content for your game based on your settings. Every time you generate, you get something new and different!
+          </div>
+        )}
+        {/* Only results should be scrollable, not the input/button */}
+        {!result && (
+          <div className="space-y-4">
+            {requiresInput() && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Input
+                </label>
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={getInputPlaceholder()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+            )}
 
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
-          {!result && (
-            <div className="space-y-4">
-              {requiresInput() && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Input
-                  </label>
-                  <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder={getInputPlaceholder()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={3}
-                  />
-                </div>
-              )}
-
-              <button
-                onClick={handleFeatureAction}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={20} />
-                    Processing...
-                  </>
-                ) : (
-                  <>
+            <button
+              type="button"
+              onClick={handleFeatureAction}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <span className="inline-flex items-center gap-2">
+                    <Wand2 size={18} />
                     Execute {getFeatureTitle()}
-                  </>
-                )}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+        {result && (
+          <div className="max-h-[70vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Results</h3>
+              <button
+                onClick={() => setResult(null)}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Run Again
               </button>
             </div>
-          )}
-
-          {result && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Results</h3>
-                <button
-                  onClick={() => setResult(null)}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Run Again
-                </button>
-              </div>
-              {renderResult()}
-            </div>
-          )}
-        </div>
+            {renderResult()}
+          </div>
+        )}
       </div>
     </div>
   );
