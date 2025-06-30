@@ -206,6 +206,7 @@ function App() {
       
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
+        <img src="/logo.png" alt="Game Genie Logo" className="w-24 h-24 absolute top-6 right-6 z-40" />
         <Sidebar 
           gameData={generatedGame?.gameData}
           files={generatedGame?.files}
@@ -222,7 +223,10 @@ function App() {
           >
             <Menu size={24} />
           </button>
-          <h1 className="text-xl font-bold text-indigo-700">Game Genie</h1>
+          <div className="flex flex-col items-center">
+            <img src="/logo.png" alt="Game Genie Logo" className="w-10 h-10 mb-1" />
+            <h1 className="text-xl font-bold text-indigo-700">Game Genie</h1>
+          </div>
           <div className="w-10"></div> {/* Spacer for centering */}
         </div>
       </div>

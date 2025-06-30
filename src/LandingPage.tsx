@@ -85,9 +85,7 @@ const LandingPage: React.FC = () => {
         <header className="container mx-auto px-4 py-6">
           <nav className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg">
-                <Wand2 className="h-6 w-6 text-white" />
-              </div>
+              <img src="/logo.png" alt="Game Genie Logo" className="w-12 h-12" />
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Game Genie
               </span>
@@ -99,8 +97,9 @@ const LandingPage: React.FC = () => {
         </header>
 
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-20 text-center">
+        <section className="container mx-auto px-4 pt-2 pb-20 text-center">
           <div className="max-w-4xl mx-auto">
+            <img src="/logo.png" alt="Game Genie Logo" className="mx-auto w-32 h-32 mb-6 drop-shadow-lg" />
             <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
               <Sparkles className="w-4 h-4 mr-2" />
               AI-Powered Game Creation
