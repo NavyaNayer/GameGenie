@@ -43,63 +43,29 @@ export class AIAssetService {
     }
   }
 
-  // 2. AI Sound Generation using Replicate
-  static async generateSound(prompt: string, duration: number = 5): Promise<string> {
+  // 2. Sound Search using Freesound.org (improved)
+  static async generateSound(prompt: string): Promise<string> {
+    const FREESOUND_API_KEY = API_CONFIG.FREESOUND.apiKey;
+    if (!FREESOUND_API_KEY || FREESOUND_API_KEY === 'fs_YOUR_TOKEN_HERE') {
+      toast.error('Freesound API key not configured');
+      return '';
+    }
     try {
-      // Check if Replicate API key is configured
-      if (!API_CONFIG.REPLICATE.apiKey || API_CONFIG.REPLICATE.apiKey === 'r8_YOUR_TOKEN_HERE') {
-        throw new Error('Replicate API key not configured');
-      }
-
-      console.log('Generating sound with Replicate API...');
-      console.log('API Key:', API_CONFIG.REPLICATE.apiKey.substring(0, 10) + '...');
-
-      // Use a different model for sound generation
-      const response = await axios.post(
-        `${API_CONFIG.REPLICATE.endpoint}/predictions`,
-        {
-          version: "facebook/musicgen:7a76a8258b23fae65c5a22debb8841d1d7e816b75c2f24218cd2bd8573787906",
-          input: {
-            model_version: "melody",
-            prompt: prompt,
-            duration: duration,
-            temperature: 1,
-            top_k: 250,
-            top_p: 0,
-            seed: -1,
-            continuation: false,
-            continuation_start: 0,
-            continuation_end: 0
-          }
-        },
-        {
-          headers: {
-            'Authorization': `Token ${API_CONFIG.REPLICATE.apiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log('Replicate response:', response.data);
-
-      // Poll for completion
-      const predictionId = response.data.id;
-      return await this.pollReplicateResult(predictionId);
-    } catch (error: any) {
-      console.error('Sound generation failed:', error);
-      
-      // Check if it's an authentication error
-      if (error.response?.status === 401) {
-        toast.error('Invalid Replicate API key - please check your configuration');
-      } else if (error.response?.status === 402) {
-        toast.error('Replicate API quota exceeded - please check your billing');
+      // Use only the core prompt for search
+      const url = `https://freesound.org/apiv2/search/text/?query=${encodeURIComponent(prompt)}&token=${FREESOUND_API_KEY}&fields=name,previews,license`;
+      const response = await axios.get(url);
+      const results = response.data.results;
+      if (results && results.length > 0) {
+        // Use the first result's preview mp3
+        return results[0].previews['preview-hq-mp3'] || results[0].previews['preview-lq-mp3'];
       } else {
-        toast.error('Sound generation failed - using placeholder audio');
+        toast.error('No matching sound found on Freesound.org');
+        return '';
       }
-      
-      // Fallback to generated audio data
-      const fallbackAudio = this.generateFallbackAudio(duration);
-      return fallbackAudio;
+    } catch (error: any) {
+      console.error('Freesound sound search failed:', error);
+      toast.error('Freesound sound search failed');
+      return '';
     }
   }
 

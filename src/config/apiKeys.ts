@@ -19,6 +19,11 @@ export const API_CONFIG = {
     endpoint: 'https://api.replicate.com/v1'
   },
 
+  // Freesound.org (FREE) - Get from https://freesound.org/apiv2/apply/
+  FREESOUND: {
+    apiKey: 'WqcS2eSQlr0KCI74sOJT8OmsqImTBBFkavFzpImR' // Replace with your Freesound API key
+  },
+
   // Supabase (FREE tier) - Get from your Supabase project
   SUPABASE: {
     url: 'YOUR_SUPABASE_URL', // Replace with your project URL
@@ -42,6 +47,10 @@ export const validateApiKeys = () => {
   
   if (API_CONFIG.REPLICATE.apiKey === 'r8_YOUR_TOKEN_HERE') {
     missing.push('Replicate API key');
+  }
+  
+  if (API_CONFIG.FREESOUND.apiKey === 'fs_YOUR_TOKEN_HERE') {
+    missing.push('Freesound API key');
   }
   
   if (API_CONFIG.SUPABASE.url === 'YOUR_SUPABASE_URL') {

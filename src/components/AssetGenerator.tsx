@@ -42,6 +42,7 @@ export const AssetGenerator: React.FC<AssetGeneratorProps> = ({ gameData, onClos
       let result = '';
       const contextualPrompt = `${prompt} for ${gameData.gameName}, a ${gameData.genre} game with ${gameData.theme} theme`;
 
+      // Use only the raw prompt for Freesound search (not contextual)
       switch (activeTab) {
         case 'images':
           result = await AIAssetService.generateImageWithOpenAI(contextualPrompt);
@@ -51,16 +52,14 @@ export const AssetGenerator: React.FC<AssetGeneratorProps> = ({ gameData, onClos
           }));
           toast.success('Image generated successfully!');
           break;
-        
         case 'sounds':
-          result = await AIAssetService.generateSound(contextualPrompt, 5);
+          result = await AIAssetService.generateSound(prompt); // Use only the raw prompt
           setGeneratedAssets(prev => ({
             ...prev,
             sounds: [...prev.sounds, result]
           }));
           toast.success('Sound generated successfully!');
           break;
-        
         case 'music':
           result = await AIAssetService.generateMusic(contextualPrompt, 30);
           setGeneratedAssets(prev => ({
